@@ -12,13 +12,13 @@
     "lint": "turbo run lint",
     "test": "turbo run --filter=form-xchange test",
     "network": "turbo run network",
+    "linea": "turbo run linea",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
     "dotenv": "^16.0.3",
     "eslint-config-custom": "*",
     "prettier": "latest",
-    "truffle": "^5.7.7",
     "turbo": "latest"
   },
   "engines": {

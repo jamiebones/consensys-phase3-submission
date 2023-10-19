@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Tells the Solidity compiler to compile only from v0.8.13 to v0.9.0
 pragma solidity ^0.8.13;
+import "hardhat/console.sol";
 
 contract FeedbackForm {
     struct Question {
@@ -75,6 +76,8 @@ contract FeedbackForm {
             Question storage question = questions[i];
             question.feedback.push(_feedback[i]);
         }
-        feedbackProviders[msg.sender] = true;
+        feedbackProviders[tx.origin] = true;
+        console.log("tx.origin  => 2", tx.origin);
+        console.log("msg.sender => 2", msg.sender);
     }
 }

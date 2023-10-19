@@ -21,7 +21,7 @@ export const truncateEthAddress = (address: string) => {
 };
 
 export const getFormattedBalance = (balance: string) =>
-  +parseFloat(ethers.utils.formatEther(balance || "")).toFixed(2);
+  +parseFloat(ethers.formatEther(balance || "")).toFixed(2);
 
 export const isAccountList = (accounts: unknown): accounts is string[] => {
   return (

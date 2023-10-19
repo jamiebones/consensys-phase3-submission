@@ -2,7 +2,6 @@ import { formContractServerInstance } from "apps/web/lib/contract.ts/contract.se
 import type { NextApiHandler } from "next";
 
 const handler: NextApiHandler = async (_, res) => {
-  
   const feedbackForms = await formContractServerInstance.getFeedbackForms();
   res.status(200).json(feedbackForms);
 };

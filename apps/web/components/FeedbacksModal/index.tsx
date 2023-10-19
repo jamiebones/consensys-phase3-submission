@@ -24,6 +24,8 @@ const AnswersModal: FC<Props> = ({ isOpen, handleCloseModal, address }) => {
     questions,
   } = useQuestions(address);
 
+  console.log("questions ", questions)
+
   const isMovePrevEnabled = currentQuestionIndex > 0;
   const isMoveNextEnabled = currentQuestionIndex < questions.length - 1;
 

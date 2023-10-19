@@ -1,6 +1,6 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "globalEnv": ["INFURA_KEY"],
+  "globalEnv": ["INFURA_KEY", "PRIVATE_KEY"],
   "globalDependencies": ["**/.env.*local"],
   "pipeline": {
     "build": {
@@ -11,6 +11,9 @@
       "outputs": []
     },
     "dev": {
+      "cache": false
+    },
+    "linea": {
       "cache": false
     },
     "test": {

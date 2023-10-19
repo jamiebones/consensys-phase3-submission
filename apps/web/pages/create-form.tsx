@@ -1,14 +1,15 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useState, useEffect } from "react";
 import Button from "../components/Button";
 import Layout from "../components/Layout";
 import { H1 } from "../components/Text";
 import { ethers } from "ethers";
-import { abi } from "packages/form-XChange/build/contracts/FeedbackFormFactory.json";
+import { abi } from "packages/form-XChange/artifacts/contracts/FeedbackFormFactory.sol/FeedbackFormFactory.json";
 import { useNetwork } from "../hooks/useNetwork";
 import { useRouter } from "next/router";
 import AddIcon from "../components/AddIcon";
 import TrashIcon from "../components/TrashIcon";
 import { FEEDBACK_FACTORY_CONTRACT_ADDRESS } from "../lib/contract.ts/config";
+import { FeedbackFormFactory } from "packages/form-XChange/typechain";
 
 const classMap = {
   inputClasses:
@@ -21,22 +22,41 @@ export default function CreateForm() {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [contract, setContract] = useState<FeedbackFormFactory | null>(null);
   const { state } = useNetwork();
   const router = useRouter();
+
+  const getContractFactory = async () => {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+
+    const contract = new ethers.Contract(
+      FEEDBACK_FACTORY_CONTRACT_ADDRESS,
+      abi,
+      signer
+    ) as unknown as FeedbackFormFactory;
+    setContract(contract);
+  };
+
+  useEffect(() => {
+    if (contract == null) {
+      getContractFactory();
+    }
+  });
 
   if (!state.isConnected) {
     router.push("/");
     return;
   }
 
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  const signer = provider.getSigner();
+  // const provider = new ethers.BrowserProvider(window.ethereum);
+  // //const signer = await provider.getSigner();
 
-  const contract = new ethers.Contract(
-    FEEDBACK_FACTORY_CONTRACT_ADDRESS,
-    abi,
-    signer
-  );
+  // const contract = new ethers.Contract(
+  //   FEEDBACK_FACTORY_CONTRACT_ADDRESS,
+  //   abi,
+  //   provider
+  // );
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>, i?: number) => {
     const { name } = e.target;
@@ -60,14 +80,17 @@ export default function CreateForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const tx = await contract.createFeedbackForm(
-        questionsInput,
-        title,
-        description
-      );
-      setLoading(true);
-      await tx.wait();
-      setLoading(false);
+      if (contract) {
+        console.log("Contract => ", contract);
+        const tx = await contract.createFeedbackForm(
+          questionsInput,
+          title,
+          description
+        );
+        setLoading(true);
+        await tx.wait();
+        setLoading(false);
+      }
     } catch (error) {
       console.log(error);
     } finally {
@@ -172,7 +195,10 @@ export default function CreateForm() {
               <AddIcon /> Add new question
             </Button>
           </div>
-          <Button type="submit" className="w-full mx-auto md:mx-0 py-2 md:max-w-[200px]">
+          <Button
+            type="submit"
+            className="w-full mx-auto md:mx-0 py-2 md:max-w-[200px]"
+          >
             Create Form
           </Button>
         </form>

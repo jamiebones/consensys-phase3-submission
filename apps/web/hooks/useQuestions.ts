@@ -1,28 +1,20 @@
 import { ethers } from "ethers";
-import { useEffect, useState } from "react";
-import contract from "packages/form-XChange/build/contracts/FeedbackForm.json";
-import { FeedbackFormInstance } from "packages/form-XChange/types/truffle-contracts/FeedbackForm";
+import { useEffect, useState, useMemo } from "react";
+import contract from "packages/form-XChange/artifacts/contracts/FeedbackForm.sol/FeedbackForm.json";
+import { FeedbackForm } from "packages/form-XChange/typechain";
 
 export type Question = {
   value: string;
   userFeedback: number | null;
 };
 
-export const useQuestions = (formContractAddress: string) => {
+export const useQuestions =  (formContractAddress: string) => {
   const { abi } = contract;
-  const provider = new ethers.providers.Web3Provider(window.ethereum);
-  const signer = provider.getSigner();
-
-  const FeedbackForm = new ethers.Contract(
-    formContractAddress,
-    abi,
-    signer
-  ) as unknown as FeedbackFormInstance;
-
+  const provider = useMemo(() => new ethers.BrowserProvider(window.ethereum), []);
+  const [signer, setSigner] = useState<null |ethers.JsonRpcSigner>(null);
+  const [FeedbackFormContract, setFeedbackFormContract] = useState<null | FeedbackForm>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
-
   const feedbacks = questions.map((q) => q.userFeedback);
-
   const [isAllFeedbackGiven, setIsAllFeedbackGiven] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,22 +22,48 @@ export const useQuestions = (formContractAddress: string) => {
     setIsAllFeedbackGiven(!feedbacks.includes(null));
   }, [feedbacks]);
 
-  const getQuestions = async () => {
-    try {
-      setIsLoading(true);
-      const questions = await FeedbackForm.getAllQuestions();
-      setQuestions(
-        questions.map((question: any) => ({
-          value: question,
-          userFeedback: null,
-        }))
-      );
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    const getSigner = async () => {
+      const signer = await provider.getSigner();
+      setSigner(signer);
+    };
+    getSigner();
+  }, [provider]);
+
+  useEffect(() => {
+    if (signer) {
+      const FeedbackForm = new ethers.Contract(
+        formContractAddress,
+        abi,
+        signer
+      ) as unknown as FeedbackForm;
+      setFeedbackFormContract(FeedbackForm);
     }
-  };
+  }, [signer, formContractAddress, abi]);
+
+  useEffect(() => {
+    const getQuestions = async () => {
+      try {
+        setIsLoading(true);
+        if ( FeedbackFormContract ){
+          const questions = await FeedbackFormContract.getAllQuestions();
+          setQuestions(
+            questions.map((question: any) => ({
+              value: question,
+              userFeedback: null,
+            }))
+          );
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    if (FeedbackFormContract) {
+      getQuestions();
+    }
+  }, [FeedbackFormContract]);
 
   const addFeedback = async (questionIndex: number, userFeedback: number) => {
     setQuestions(
@@ -64,7 +82,10 @@ export const useQuestions = (formContractAddress: string) => {
     if (!isAllFeedbackGiven) return;
 
     try {
-      await FeedbackForm.submitFeedback(answers);
+      if ( FeedbackFormContract){
+        await FeedbackFormContract.submitFeedback(answers);
+      }
+      
     } catch (error) {
       console.error(error);
     } finally {
@@ -77,10 +98,6 @@ export const useQuestions = (formContractAddress: string) => {
       questions.map((question) => ({ ...question, userFeedback: null }))
     );
   };
-
-  useEffect(() => {
-    getQuestions();
-  }, [formContractAddress]);
 
   return {
     questions,

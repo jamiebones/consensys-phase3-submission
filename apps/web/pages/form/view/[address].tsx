@@ -7,8 +7,9 @@ import Button from "apps/web/components/Button";
 import FeedbacksModal from "apps/web/components/FeedbacksModal";
 import { useEffect, useState } from "react";
 import { useNetwork } from "apps/web/hooks/useNetwork";
-import { abi } from "packages/form-XChange/build/contracts/FeedbackForm.json";
-import { FeedbackFormInstance } from "packages/form-XChange/types/truffle-contracts";
+import { abi } from "packages/form-XChange/artifacts/contracts/FeedbackForm.sol/FeedbackForm.json";
+import { FeedbackForm } from "packages/form-XChange/typechain";
+
 
 type Props = {
   address: string;
@@ -28,13 +29,13 @@ const FormDetails: NextPage<Props> = ({ title, description, address }) => {
 
   useEffect(() => {
     if (wallet && window.ethereum) {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const provider = new ethers.BrowserProvider(window.ethereum);
 
       const feedbackForm = new ethers.Contract(
         address,
         abi,
         provider
-      ) as unknown as FeedbackFormInstance;
+      ) as unknown as FeedbackForm;
 
       feedbackForm.getHasProvidedFeedback(wallet!).then(setHasLeftFeedback);
     } else if (!wallet) {
@@ -116,7 +117,7 @@ export const getStaticProps: GetStaticProps = async (context) => {
   const { params } = context;
 
   const url = `https://linea-goerli.infura.io/v3/${process.env.INFURA_KEY}`;
-  const provider = new ethers.providers.JsonRpcProvider(url);
+  const provider = new ethers.JsonRpcProvider(url);
 
   if (!params?.address || typeof params.address !== "string") {
     return {

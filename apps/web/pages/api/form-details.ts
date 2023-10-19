@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import type { NextApiHandler } from "next";
 
 const url = `https://linea-goerli.infura.io/v3/${process.env.INFURA_KEY}`;
-const provider = new ethers.providers.JsonRpcProvider(url);
+const provider = new ethers.JsonRpcProvider(url);
 
 const handler: NextApiHandler = async (req, res) => {
   const feedbackForm = getFeedbackFormInstanceContract({
