@@ -1,0 +1,29 @@
+{
+  "name": "crowd-funding",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test --network hardhat",
+    "network": "npx hardhat node",
+    "deploy:linea": "npx hardhat run --network linea scripts/deploy.js",
+    "deploy:polygonTestnet": "npx hardhat run --network polygonTestnet scripts/deploy.js",
+    "deploy:hardhat": "npx hardhat run --network hardhat scripts/deploy.js",
+    "dev": "npm run compile && npm run deploy:hardhat",
+    "linea": "npm run compile && npm run deploy:linea",
+    "polygon": "npm run compile && npm run deploy:polygonTestnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@typechain/hardhat": "^9.1.0",
+    "chai": "^4.3.10",
+    "hardhat": "^2.19.1",
+    "typechain": "^8.3.2",
+    "hardhat-gas-reporter": "^1.0.9",
+    "solidity-coverage": "^0.8.5"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0"
+  }
+}

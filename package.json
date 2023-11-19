@@ -1,5 +1,5 @@
 {
-  "name": "@consensys/form-xchange",
+  "name": "crowd-funding",
   "version": "0.0.0",
   "private": true,
   "workspaces": [
@@ -10,7 +10,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "test": "turbo run --filter=form-xchange test",
+    "test": "turbo run test",
     "network": "turbo run network",
     "linea": "turbo run linea",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
@@ -19,6 +19,7 @@
     "dotenv": "^16.0.3",
     "eslint-config-custom": "*",
     "prettier": "latest",
+    "ts-node": "^10.9.1",
     "turbo": "latest"
   },
   "engines": {

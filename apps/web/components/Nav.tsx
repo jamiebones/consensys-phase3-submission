@@ -8,7 +8,6 @@ import Link from "next/link";
 import { getFormattedBalance } from "../utils/networks";
 import { useRouter } from "next/router";
 import { ConnectionButton } from "./ConnectionButton";
-import { NewFormButton } from "./NewFormButton";
 import { Fund } from "./Fund";
 
 const Nav = () => {
@@ -28,7 +27,7 @@ const Nav = () => {
   return (
     <nav className="flex justify-between py-4 max-w-screen-2xl mx-auto">
       <Link href="/" className="w-full">
-        <H1>Form xChange</H1>
+        <H1>Crowd Funding</H1>
       </Link>
 
       <div className="flex items-center justify-end w-full gap-4">
@@ -49,10 +48,7 @@ const Nav = () => {
             (formattedBalance === 0 ? (
               <Fund currentBalance={formattedBalance} className="mr-2" />
             ) : (
-              <NewFormButton
-                onClick={() => router.push("/create-form")}
-                className="mr-2"
-              />
+              null
             ))}
           <ConnectionButton />
         </div>
@@ -85,10 +81,7 @@ const Nav = () => {
                           className="mb-2"
                         />
                       ) : (
-                        <NewFormButton
-                          onClick={() => router.push("/create-form")}
-                          className="mb-2"
-                        />
+                        null
                       )}
                     </Menu.Item>
                   )}
