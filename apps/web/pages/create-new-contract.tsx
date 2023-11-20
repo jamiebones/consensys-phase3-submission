@@ -6,7 +6,7 @@ import { ethers } from "ethers";
 import { abi } from "packages/crowd-funding/artifacts/contracts/FundingFactory.sol/FundingFactory.json";
 import { useNetwork } from "../hooks/useNetwork";
 import { useRouter } from "next/router";
-import { CROWDFUNDING_FACTORY_CONTRACT_ADDRESS } from "../lib/contract.ts/config";
+import { CROWDFUNDING_FACTORY_CONTRACT_ADDRESS, FUNDING_FACTORY_CONTRACT_ADDRESS } from "../lib/contract.ts/config";
 import { FundingFactory } from "packages/crowd-funding/typechain";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -35,8 +35,7 @@ export default function CreateNewCrowdFuningContract() {
     const signer = await provider.getSigner();
 
     const contract = new ethers.Contract(
-      //"0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-      "0x822A61595E704Fe337Edd3892937d86d4439c7e0",
+      FUNDING_FACTORY_CONTRACT_ADDRESS,
       abi,
       signer
     ) as unknown as FundingFactory;

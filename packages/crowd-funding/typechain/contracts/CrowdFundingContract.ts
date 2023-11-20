@@ -64,6 +64,7 @@ export interface CrowdFundingContractInterface extends Interface {
       | "campaignEnded"
       | "campaignOwner"
       | "creatNewMilestone"
+      | "donationGiven"
       | "donors"
       | "etherBalance"
       | "fundingCId"
@@ -103,6 +104,10 @@ export interface CrowdFundingContractInterface extends Interface {
   encodeFunctionData(
     functionFragment: "creatNewMilestone",
     values: [string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "donationGiven",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "donors", values: [AddressLike]): string;
   encodeFunctionData(
@@ -165,6 +170,10 @@ export interface CrowdFundingContractInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "creatNewMilestone",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "donationGiven",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "donors", data: BytesLike): Result;
@@ -344,6 +353,8 @@ export interface CrowdFundingContract extends BaseContract {
     "nonpayable"
   >;
 
+  donationGiven: TypedContractMethod<[], [bigint], "view">;
+
   donors: TypedContractMethod<[arg0: AddressLike], [bigint], "view">;
 
   etherBalance: TypedContractMethod<[], [bigint], "view">;
@@ -414,6 +425,9 @@ export interface CrowdFundingContract extends BaseContract {
     [void],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "donationGiven"
+  ): TypedContractMethod<[], [bigint], "view">;
   getFunction(
     nameOrSignature: "donors"
   ): TypedContractMethod<[arg0: AddressLike], [bigint], "view">;

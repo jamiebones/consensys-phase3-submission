@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { truncateEthAddress } from "../utils/networks";
-import FeedbacksModal from "./FeedbacksModal";
+import FeedbacksModal from "./MileStoneModal";
 import Button from "./Button";
 import { H3, Text } from "./Text";
 import { useNetwork } from "../hooks/useNetwork";

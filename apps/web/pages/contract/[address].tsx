@@ -6,10 +6,15 @@ import { getCrowdFundingInstanceContract } from "apps/web/lib/contract.ts/crowdF
 
 import { RPC_URL } from "../../lib/contract.ts/config";
 import { readFileFromRemoteServer } from "../../utils/utils";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNetwork } from "apps/web/hooks/useNetwork";
 import { abi } from "packages/crowd-funding/artifacts/contracts/CrowdFundingContract.sol/CrowdFundingContract.json";
 import { CrowdFundingContract } from "packages/crowd-funding/typechain";
+import MileStoneModal from "apps/web/components/MileStoneModal";
+
+const etherConstant = 1_000_000_000_000_000_000;
+
+const milestoneStatus = ["Approved", "Declined", "Pending"];
 
 type Props = {
   address: string;
@@ -20,6 +25,20 @@ type Props = {
   reason: string;
   numberOfDonors: string;
   amountDonated: string;
+  milestone: MilestoneProps;
+};
+
+type MilestoneVoteProps = {
+  address: string;
+  vote: boolean;
+};
+
+type MilestoneProps = {
+  milestoneReason: string;
+  approved: boolean;
+  votingPeriod: string;
+  status: string;
+  votes: MilestoneVoteProps[];
 };
 
 const CrowdFundingDetails: NextPage<Props> = ({
@@ -30,7 +49,8 @@ const CrowdFundingDetails: NextPage<Props> = ({
   campaignDuration,
   reason,
   numberOfDonors,
-  amountDonated
+  amountDonated,
+  milestone,
 }) => {
   const {
     state: { isConnected, wallet },
@@ -38,7 +58,11 @@ const CrowdFundingDetails: NextPage<Props> = ({
 
   const [contract, setContract] = useState<CrowdFundingContract | null>(null);
   const [donatedAmount, setDonatedAmount] = useState<number>(0);
+  const [myDonation, setMyDonation] = useState<number>(0);
   const [processing, setProcessing] = useState<boolean>(false);
+  const [openModal, setOpenModal] = useState<boolean>(false);
+
+  console.log("milestone ", milestone);
 
   const getFundingContract = async () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
@@ -58,6 +82,18 @@ const CrowdFundingDetails: NextPage<Props> = ({
     }
   });
 
+  const getDonationMade = async () => {
+    const myDonation = await contract?.donationGiven();
+    const dona = myDonation ? +myDonation.toString() : 0;
+    setMyDonation(dona);
+  };
+
+  useEffect(() => {
+    if (contract) {
+      getDonationMade();
+    }
+  }, [contract]);
+
   const handleDonationChange = (e: any) => {
     if (e.target.value !== "") {
       setDonatedAmount(e.target.value);
@@ -68,10 +104,10 @@ const CrowdFundingDetails: NextPage<Props> = ({
     if (donatedAmount !== 0 && contract) {
       try {
         setProcessing(true);
-        const amountToDonate = ethers.parseEther(donatedAmount.toString());
-        console.log("donated amount ", amountToDonate, donatedAmount)
-        return;
-        await contract.makeDonation({ value: amountToDonate });
+
+        let amount = ethers.parseEther(donatedAmount.toString());
+        console.log("donated amount ", amount, donatedAmount);
+        await contract.makeDonation({ value: amount });
       } catch (error) {
         console.log("There was an error => ", error);
       } finally {
@@ -81,16 +117,20 @@ const CrowdFundingDetails: NextPage<Props> = ({
     }
   };
 
-  if ( processing ){
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
+
+  if (processing) {
     return (
-        <Layout>
-          <div className="flex flex-col items-center justify-center h-screen">
-            <h1 className="text-3xl font-bold text-center">
-              Processing your donation to the contract......
-            </h1>
-          </div>
-        </Layout>
-      );
+      <Layout>
+        <div className="flex flex-col items-center justify-center h-screen">
+          <h1 className="text-3xl font-bold text-center">
+            Processing your donation to the contract......
+          </h1>
+        </div>
+      </Layout>
+    );
   }
 
   return (
@@ -107,65 +147,126 @@ const CrowdFundingDetails: NextPage<Props> = ({
         <p className="mt-2">{reason && JSON.parse(reason)}</p>
       </div>
 
-      <div className="mb-4 flex border p-2 w-1/2">
-        <span className="font-bold">Contract Owner:</span>
-        <p className="ml-2">{owner}</p>
-      </div>
-
-      <div className="mb-4 flex border p-2 w-1/2">
-        <span className="font-bold">Target Amount:</span>
-        <p className="ml-2">{+amount / 1e18} Ether</p>
-      </div>
-
-      <div className="flex border p-2 w-1/2">
-        <span className="font-bold">Campaign Duration:</span>
-        <p className="ml-2">
-          {campaignDuration && new Date(+campaignDuration).toDateString()}
-        </p>
-      </div>
-
-      <div className="flex border p-2 w-1/2">
-        <span className="font-bold">Number of Donors:</span>
-        <p className="ml-2">{numberOfDonors.toString()}</p>
-      </div>
-
-      <div className="flex border p-2 w-1/2">
-        <span className="font-bold">Amount Donated:</span>
-        <p className="ml-2">{+amountDonated.toString() / 1e18}</p>
-      </div>
-
       {owner.toLowerCase() == wallet?.toLowerCase() && (
-        <div>
-          <p>Create Milestone</p>
+        <div className="mb-4">
+          <button
+            onClick={() => setOpenModal(true)}
+            className="bg-blue-500 text-white px-4 py-2"
+          >
+            Create Milestone
+          </button>
         </div>
       )}
 
-      <div className="flex flex-col bg-white p-4 rounded-lg shadow-md mb-4 w-1/2">
-        <h2 className="text-center mb-2">Donate </h2>
-        <div className="flex items-center mb-2">
-          <input
-            type="number"
-            value={donatedAmount}
-            className="border p-2 mr-2"
-            placeholder="0"
-            onChange={handleDonationChange}
-          />
-          <button
-            className="bg-blue-500 text-white px-4 py-2"
-            onClick={makeDonation}
-            disabled={processing}
-          >
-            Donate
-          </button>
-        </div>
+      <div className="flex">
+        <div className="w-1/2 h-screen">
+          <div className="mb-4 flex border p-2 mr-2">
+            <span className="font-bold">Contract Owner:</span>
+            <p className="ml-2">{owner}</p>
+          </div>
 
-        <p>Donate to the cause by sending Ether to this contract</p>
+          <div className="mb-4 flex border p-2 mr-2">
+            <span className="font-bold">Target Amount:</span>
+            <p className="ml-2">{+amount / 1e18} Ether</p>
+          </div>
+
+          <div className="mb-4 flex border p-2">
+            <span className="font-bold">Campaign Duration:</span>
+            <p className="ml-2">
+              {campaignDuration && new Date(+campaignDuration).toDateString()}
+            </p>
+          </div>
+
+          <div className="mb-4 flex border p-2 mr-2">
+            <span className="font-bold">Number of Donors:</span>
+            <p className="ml-2">{numberOfDonors.toString()}</p>
+          </div>
+
+          <div className="mb-4 flex border p-2 mr-2">
+            <span className="font-bold">Total Ether Donated:</span>
+            <p className="ml-2">
+              {amountDonated && ethers.formatUnits(amountDonated.toString())}{" "}
+              Ether
+            </p>
+          </div>
+          <div className="mb-4 flex border p-2 mr-2">
+            <span className="font-bold">My Donation:</span>
+            <p className="ml-2">
+              {myDonation && ethers.formatUnits(myDonation.toString())} Ether
+            </p>
+          </div>
+          <div className="flex flex-col bg-white p-4 rounded-lg shadow-md mb-4 mr-2">
+            <h2 className="text-center mb-2">Donate </h2>
+            <div className="flex items-center mb-2">
+              <input
+                type="number"
+                value={donatedAmount}
+                className="border p-2 mr-2"
+                placeholder="0"
+                onChange={handleDonationChange}
+              />
+              <button
+                className="bg-blue-500 text-white px-4 py-2"
+                onClick={makeDonation}
+                disabled={processing}
+              >
+                Donate
+              </button>
+            </div>
+
+            <p>Donate to the cause by sending Ether to this contract</p>
+          </div>
+        </div>
+        <div className="w-1/2 h-screen p-4">
+          {/* Content for the right div */}
+          {milestone && (
+            <React.Fragment>
+              <div className="mb-4">
+                <span className="font-bold">Milestone Reason:</span>
+                <p className="mt-2">{JSON.parse(milestone.milestoneReason)}</p>
+              </div>
+              <div className="mb-4 flex border p-2 mr-2">
+                <span className="font-bold">Approved:</span>
+                <p className="ml-2">{milestone.approved ? "True" : "False"}</p>
+              </div>
+
+              <div className="mb-4 flex border p-2 mr-2">
+                <span className="font-bold">Voting Period:</span>
+                <p className="ml-2">
+                  {new Date(+milestone.votingPeriod).toDateString()}
+                </p>
+              </div>
+
+              <div className="mb-4 flex border p-2 mr-2">
+                <span className="font-bold">Milestone Status:</span>
+                <p className="ml-2">{milestoneStatus[+milestone.status]}</p>
+              </div>
+
+              {milestone.votes.map(({ address, vote }) => {
+                return (
+                  <div className="mb-4 flex">
+                    <span className="font-bold">{address}:</span>
+                    <p className="ml-2">{vote}</p>
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          )}
+        </div>
       </div>
 
       {!isConnected && (
         <p className="text-center text-sm mt-4">
           In order to donate, pleese connect your wallet
         </p>
+      )}
+
+      {contract && (
+        <MileStoneModal
+          isOpen={openModal}
+          contract={contract}
+          handleCloseModal={handleCloseModal}
+        />
       )}
 
       <div className="flex w-full justify-center space-x-8"></div>
@@ -175,7 +276,7 @@ const CrowdFundingDetails: NextPage<Props> = ({
 
 export default CrowdFundingDetails;
 
-export const getServerSideProps = async (context) => {
+export const getServerSideProps = async (context: any) => {
   const { params } = context;
 
   //const url = `https://linea-goerli.infura.io/v3/${process.env.INFURA_KEY}`;
@@ -187,22 +288,45 @@ export const getServerSideProps = async (context) => {
     provider,
   });
 
-  const [fundingCID, purpose, amount, campaignDuration, owner, numberOfDonors, amountDonated] =
-    await Promise.all([
-      crowdFundingContract.fundingCId(),
-      crowdFundingContract.purpose(),
-      crowdFundingContract.targetAmount(),
-      crowdFundingContract.campaignDuration(),
-      crowdFundingContract.campaignOwner(),
-      crowdFundingContract.numberOfDonors(),
-      crowdFundingContract.getDonation()
-    ]);
+  const [
+    fundingCID,
+    purpose,
+    amount,
+    campaignDuration,
+    owner,
+    numberOfDonors,
+    amountDonated,
+    milestone,
+  ] = await Promise.all([
+    crowdFundingContract.fundingCId(),
+    crowdFundingContract.purpose(),
+    crowdFundingContract.targetAmount(),
+    crowdFundingContract.campaignDuration(),
+    crowdFundingContract.campaignOwner(),
+    crowdFundingContract.numberOfDonors(),
+    crowdFundingContract.getDonation(),
+    crowdFundingContract.showCurrentMillestone(),
+  ]);
 
   const fileData = await readFileFromRemoteServer(
     `https://devnet.irys.xyz/${fundingCID}`
   );
-  console.log("file data", fileData);
 
+  //const milestoneData = await readFileFromRemoteServer(``);
+  console.log("milestone data =>", milestone);
+  let milestoneObject: MilestoneProps = {} as MilestoneProps;
+  if (milestone.length > 0) {
+    const milestoneReason = await readFileFromRemoteServer(
+      `https://devnet.irys.xyz/${milestone[0]}`
+    );
+    milestoneObject = {
+      milestoneReason: milestoneReason as string,
+      approved: milestone[1],
+      votingPeriod: milestone[2].toString(),
+      status: milestone[3].toString(),
+      votes: milestone[4] as any,
+    };
+  }
 
   return {
     props: {
@@ -213,7 +337,8 @@ export const getServerSideProps = async (context) => {
       campaignDuration: campaignDuration.toString(),
       reason: fileData,
       numberOfDonors: numberOfDonors.toString(),
-      amountDonated: amountDonated.toString()
+      amountDonated: amountDonated.toString(),
+      milestone: milestoneObject,
     },
     //revalidate: 10,
   };

@@ -1,10 +1,7 @@
 //SPDX-License-Identifier:MIT
 pragma solidity ^0.8.20;
 
-
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-
-
 
 enum MilestoneStatus {
     Approved,
@@ -240,6 +237,10 @@ contract CrowdFundingContract is Initializable {
 
     function numberOfDonors() public view returns (uint256) {
         return _numberOfDonors;
+    }
+
+    function donationGiven() public view returns (uint256) {
+        return donors[msg.sender];
     }
 
     function showCurrentMillestone() public view returns (Milestone memory) {
