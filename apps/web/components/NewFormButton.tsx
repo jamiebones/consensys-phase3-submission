@@ -19,7 +19,7 @@ export const NewFormButton: React.FC<NewFormButtonProps> = ({
       )}
       onClick={onClick}
     >
-      New Form
+      New Contract
     </Button>
   );
 };

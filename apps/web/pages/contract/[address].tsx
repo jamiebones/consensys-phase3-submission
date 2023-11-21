@@ -16,6 +16,7 @@ const etherConstant = 1_000_000_000_000_000_000;
 
 const milestoneStatus = ["Approved", "Declined", "Pending"];
 
+
 type Props = {
   address: string;
   owner: string;
@@ -60,9 +61,9 @@ const CrowdFundingDetails: NextPage<Props> = ({
   const [donatedAmount, setDonatedAmount] = useState<number>(0);
   const [myDonation, setMyDonation] = useState<number>(0);
   const [processing, setProcessing] = useState<boolean>(false);
+  const [voting, setVoting] = useState<boolean>(false);
   const [openModal, setOpenModal] = useState<boolean>(false);
 
-  console.log("milestone ", milestone);
 
   const getFundingContract = async () => {
     const provider = new ethers.BrowserProvider(window.ethereum);
@@ -117,9 +118,46 @@ const CrowdFundingDetails: NextPage<Props> = ({
     }
   };
 
+  const handleVoteOnMilestone = async (vote: boolean) => {
+    if (contract) {
+      try {
+        setVoting(true);
+        const tx = await contract.voteOnMilestone(vote);
+        tx.wait(2);
+      } catch (error) {
+        console.log("There was an error voting => ", error);
+      } finally {
+        setVoting(false);
+      }
+    }
+  };
+
+  const withdrawMilestoneDonation = async () => {
+    if (contract) {
+      try {
+        setProcessing(true);
+        await contract.withdrawMilestone();
+      } catch (error) {
+        console.log("There was an error withdrawing => ", error);
+      } finally {
+        setProcessing(false);
+      }
+    }
+  };
+
   const handleCloseModal = () => {
     setOpenModal(false);
   };
+
+  if (voting) {
+    return (
+      <Layout>
+        <div className="flex flex-col items-center justify-center h-screen">
+          <h1 className="text-3xl font-bold text-center">Processing ......</h1>
+        </div>
+      </Layout>
+    );
+  }
 
   if (processing) {
     return (
@@ -139,7 +177,7 @@ const CrowdFundingDetails: NextPage<Props> = ({
         <h1 className="text-3xl font-bold text-center">
           Crowd Funding For : <span>{purpose}</span>
         </h1>
-        <p className="text-center text-xl mt-4">{wallet}</p>
+    
       </div>
 
       <div className="mb-4">
@@ -167,7 +205,9 @@ const CrowdFundingDetails: NextPage<Props> = ({
 
           <div className="mb-4 flex border p-2 mr-2">
             <span className="font-bold">Target Amount:</span>
-            <p className="ml-2">{+amount / 1e18} Ether</p>
+            <p className="ml-2">
+              {(+amount / etherConstant).toFixed(18)} Ether
+            </p>
           </div>
 
           <div className="mb-4 flex border p-2">
@@ -219,7 +259,7 @@ const CrowdFundingDetails: NextPage<Props> = ({
         </div>
         <div className="w-1/2 h-screen p-4">
           {/* Content for the right div */}
-          {milestone && (
+          {milestone && milestone.votingPeriod != "0" && (
             <React.Fragment>
               <div className="mb-4">
                 <span className="font-bold">Milestone Reason:</span>
@@ -242,14 +282,54 @@ const CrowdFundingDetails: NextPage<Props> = ({
                 <p className="ml-2">{milestoneStatus[+milestone.status]}</p>
               </div>
 
-              {milestone.votes.map(({ address, vote }) => {
+              {milestone && milestone.votes.length > 0 && (
+                <h3 className="text-center text-lg">Milestone Votes</h3>
+              )}
+
+              {milestone.votes.map((voteArray: any) => {
                 return (
                   <div className="mb-4 flex">
-                    <span className="font-bold">{address}:</span>
-                    <p className="ml-2">{vote}</p>
+                    <span className="font-bold">
+                      {voteArray[0].toString()}:
+                    </span>
+                    <p className="ml-2">{voteArray[1] ? "True" : "False"}</p>
                   </div>
                 );
               })}
+
+              {owner.toLowerCase() == wallet?.toLowerCase() && (
+                <div className="mb-4">
+                  <button
+                    onClick={withdrawMilestoneDonation}
+                    className="bg-red-500 text-white px-4 py-2"
+                  >
+                    Withdraw Milestone Fund
+                  </button>
+                </div>
+              )}
+
+              <div className="text-center mb-4">
+                <p className="text-lg font-bold">Vote on Milestone</p>
+              </div>
+
+              <div className="flex flex-col items-center justify-center p-8 bg-gray-100 rounded-lg shadow-md">
+                <p className="mb-4 text-sm">Choose your vote:</p>
+
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => handleVoteOnMilestone(true)}
+                    className="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 focus:outline-none"
+                  >
+                    Yes
+                  </button>
+                  <button
+                    onClick={() => handleVoteOnMilestone(false)}
+                    className="bg-red-500 text-white px-6 py-3 rounded-full hover:bg-red-600 focus:outline-none"
+                  >
+                    No
+                  </button>
+                </div>
+              </div>
             </React.Fragment>
           )}
         </div>

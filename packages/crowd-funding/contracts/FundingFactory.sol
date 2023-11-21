@@ -6,12 +6,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "./CrowdFundingContract.sol";
 
-
-
 contract FundingFactory is Ownable {
-    using EnumerableSet for EnumerableSet.AddressSet;
-    //state variables;
-    EnumerableSet.AddressSet private deployedAddressSet;
+    FundingDetails[] public contractDeployed;
     address immutable crowdFundingImplementation;
     uint256 public fundingFee = 0.001 ether;
 
@@ -55,13 +51,13 @@ contract FundingFactory is Ownable {
         );
         require(success, "creation failed");
         FundingDetails[] storage fundingDetails = deployedContracts[msg.sender];
+        
+
         FundingDetails memory newFundingDetails;
         newFundingDetails.contractAddress = clone;
         newFundingDetails.purpose = _purpose;
-
         fundingDetails.push(newFundingDetails);
-
-        deployedAddressSet.add(msg.sender);
+        contractDeployed.push(newFundingDetails);
         emit NewCrowdFundingCreated(msg.sender, fundingFee, clone, _fundingCId);
     }
 
@@ -72,8 +68,20 @@ contract FundingFactory is Ownable {
         require(success, "withdrawal failed");
     }
 
-    function getUserdeployedContracts() public view returns (FundingDetails[] memory) {
+    function getUserdeployedContracts()
+        public
+        view
+        returns (FundingDetails[] memory)
+    {
         return deployedContracts[msg.sender];
+    }
+
+    function getContractDeployerAddress()
+        public
+        view
+        returns (FundingDetails[] memory)
+    {
+        return contractDeployed;
     }
 
     receive() external payable {}

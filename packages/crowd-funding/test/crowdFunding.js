@@ -115,9 +115,11 @@ describe("CrowdFunding", function () {
       expect(wait.logs[1].args.cloneAddress).to.exist;
     });
 
-    it("Should show deployed contracts as two", async function () {
+    it("Should show deployed contracts and get number of deployed contract", async function () {
       const { contractFactory, otherAccount } = await loadFixture(setUpContractUtils);
       const deployedContracts = await contractFactory.connect(otherAccount).getUserdeployedContracts();
+      const totalContracts = await contractFactory.getContractDeployerAddress();
+      expect(+totalContracts.length).to.be.equal(2);
       expect(+deployedContracts.length).to.be.equal(2);
     });
 

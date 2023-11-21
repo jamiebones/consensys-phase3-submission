@@ -1,4 +1,4 @@
-export const FeedbackFormCardSkeleton = () => {
+export const CardSkeleton = () => {
   return (
     <div className="flex flex-col w-full mx-auto p-4 bg-slate-100 rounded-lg shadow-lg max-w-2xl">
       <div className="flex flex-col gap-2">

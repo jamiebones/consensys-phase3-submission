@@ -57,3 +57,13 @@ export const readFileFromRemoteServer = async function (remoteFileUrl: string) {
         });
     });
   }
+
+  export function convertToDecimal(scientificNotation: number) {
+    const [coefficient, exponent] = scientificNotation.toString().split('e');
+    // Convert the coefficient to a decimal number
+    const decimalCoefficient = parseFloat(coefficient);
+    // Calculate the result by multiplying the coefficient with 10 raised to the exponent
+    const result = decimalCoefficient * Math.pow(10, parseInt(exponent, 10));
+  
+    return result;
+  }

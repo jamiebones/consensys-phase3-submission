@@ -13,6 +13,7 @@
     "test": "turbo run test",
     "network": "turbo run network",
     "linea": "turbo run linea",
+    "polygon": "turbo run polygon",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {

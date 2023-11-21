@@ -9,6 +9,7 @@ import { useRouter } from "next/router";
 import { CROWDFUNDING_FACTORY_CONTRACT_ADDRESS, FUNDING_FACTORY_CONTRACT_ADDRESS } from "../lib/contract.ts/config";
 import { FundingFactory } from "packages/crowd-funding/typechain";
 import DatePicker from "react-datepicker";
+import { convertToDecimal } from "../utils/utils"
 import "react-datepicker/dist/react-datepicker.css";
 
 const classMap = {
@@ -20,7 +21,7 @@ const classMap = {
 };
 
 export default function CreateNewCrowdFuningContract() {
-  const [amountToRaise, setAmountToRaise] = useState<number>(0);
+  const [amountToRaise, setAmountToRaise] = useState<string>("0");
   const [purpose, setPurpose] = useState<string>("");
   const [remainCharacter, setRemainCharacter] = useState<number>(200);
   const [endDate, setStartDate] = useState(new Date());
@@ -51,7 +52,7 @@ export default function CreateNewCrowdFuningContract() {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name } = e.target;
     if (name === "amountToRaise" && e.target.value !== null) {
-      setAmountToRaise(+e.target.value);
+      setAmountToRaise(e.target.value);
     } else if (name === "purpose") {
       //get the length of the word
       let wordCount = +e.target.value.length;
@@ -90,7 +91,7 @@ export default function CreateNewCrowdFuningContract() {
     const confirmDetails = confirm(
       `Purpose for raising funds: ${purpose}
       Description: ${description} 
-        Amount Sought: ${amountToRaise}
+        Amount Sought: ${(amountToRaise)}
         Last Donation Date: ${endDate}
         `
     );
@@ -99,7 +100,7 @@ export default function CreateNewCrowdFuningContract() {
       if (contract && state.isConnected) {
         setLoading(true);
         const transactionId = await handleDescriptionUpload(description);
-        const amount = ethers.parseEther(amountToRaise.toString());
+        const amount = ethers.parseEther(amountToRaise);
         const timestamp = new Date(endDate).getTime();
         const txn = await contract.createCrowdFundingContract(
           transactionId,
@@ -116,12 +117,13 @@ export default function CreateNewCrowdFuningContract() {
 
         setLoading(false);
         setDescription("");
-        setAmountToRaise(0);
+        setAmountToRaise("0");
         router.push(`/contract/${contractAddress}`);
       }
     } catch (error) {
       console.log("Error creating crowd funding contract => ", error);
     } finally {
+      setLoading(false);
     }
   };
 

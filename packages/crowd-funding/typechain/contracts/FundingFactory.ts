@@ -38,9 +38,11 @@ export declare namespace FundingFactory {
 export interface FundingFactoryInterface extends Interface {
   getFunction(
     nameOrSignature:
+      | "contractDeployed"
       | "createCrowdFundingContract"
       | "deployedContracts"
       | "fundingFee"
+      | "getContractDeployerAddress"
       | "getUserdeployedContracts"
       | "owner"
       | "renounceOwnership"
@@ -53,6 +55,10 @@ export interface FundingFactoryInterface extends Interface {
   ): EventFragment;
 
   encodeFunctionData(
+    functionFragment: "contractDeployed",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "createCrowdFundingContract",
     values: [string, string, BigNumberish, BigNumberish]
   ): string;
@@ -62,6 +68,10 @@ export interface FundingFactoryInterface extends Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "fundingFee",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getContractDeployerAddress",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -83,6 +93,10 @@ export interface FundingFactoryInterface extends Interface {
   ): string;
 
   decodeFunctionResult(
+    functionFragment: "contractDeployed",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "createCrowdFundingContract",
     data: BytesLike
   ): Result;
@@ -91,6 +105,10 @@ export interface FundingFactoryInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "fundingFee", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "getContractDeployerAddress",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "getUserdeployedContracts",
     data: BytesLike
@@ -191,6 +209,12 @@ export interface FundingFactory extends BaseContract {
     event?: TCEvent
   ): Promise<this>;
 
+  contractDeployed: TypedContractMethod<
+    [arg0: BigNumberish],
+    [[string, string] & { contractAddress: string; purpose: string }],
+    "view"
+  >;
+
   createCrowdFundingContract: TypedContractMethod<
     [
       _fundingCId: string,
@@ -209,6 +233,12 @@ export interface FundingFactory extends BaseContract {
   >;
 
   fundingFee: TypedContractMethod<[], [bigint], "view">;
+
+  getContractDeployerAddress: TypedContractMethod<
+    [],
+    [FundingFactory.FundingDetailsStructOutput[]],
+    "view"
+  >;
 
   getUserdeployedContracts: TypedContractMethod<
     [],
@@ -233,6 +263,13 @@ export interface FundingFactory extends BaseContract {
   ): T;
 
   getFunction(
+    nameOrSignature: "contractDeployed"
+  ): TypedContractMethod<
+    [arg0: BigNumberish],
+    [[string, string] & { contractAddress: string; purpose: string }],
+    "view"
+  >;
+  getFunction(
     nameOrSignature: "createCrowdFundingContract"
   ): TypedContractMethod<
     [
@@ -254,6 +291,13 @@ export interface FundingFactory extends BaseContract {
   getFunction(
     nameOrSignature: "fundingFee"
   ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
+    nameOrSignature: "getContractDeployerAddress"
+  ): TypedContractMethod<
+    [],
+    [FundingFactory.FundingDetailsStructOutput[]],
+    "view"
+  >;
   getFunction(
     nameOrSignature: "getUserdeployedContracts"
   ): TypedContractMethod<

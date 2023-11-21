@@ -8,6 +8,7 @@ import Link from "next/link";
 import { getFormattedBalance } from "../utils/networks";
 import { useRouter } from "next/router";
 import { ConnectionButton } from "./ConnectionButton";
+import { NewFormButton } from "./NewFormButton";
 import { Fund } from "./Fund";
 
 const Nav = () => {
@@ -48,10 +49,15 @@ const Nav = () => {
             (formattedBalance === 0 ? (
               <Fund currentBalance={formattedBalance} className="mr-2" />
             ) : (
-              null
+              <NewFormButton
+                onClick={() => router.push("/create-new-contract")}
+                className="mr-2"
+              />
             ))}
           <ConnectionButton />
         </div>
+
+     
         <div className="text-right lg:hidden">
           <Menu as="div" className="relative inline-block text-left">
             <div>
@@ -80,9 +86,7 @@ const Nav = () => {
                           currentBalance={formattedBalance}
                           className="mb-2"
                         />
-                      ) : (
-                        null
-                      )}
+                      ) : null}
                     </Menu.Item>
                   )}
 
