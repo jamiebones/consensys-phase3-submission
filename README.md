@@ -33,6 +33,7 @@ Navigate to the root directory and run `npm run test`
 ### Challenges
 
 * The project was initially intended to be deployed on Linea, but I noticed that some code that works on Polygon like how to query for events don't work on Linea. 
+* The frontend is manually refreshed to get the updated changes in the blockchain
 * The frontend of the application is not artistically pleasing and more work need to be done in that regards.
 * The dapps is not yet production ready but it offered me an opportunity to deep dive into Consensys ecosystem and tools. 
 
