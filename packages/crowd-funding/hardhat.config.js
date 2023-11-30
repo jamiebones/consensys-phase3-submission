@@ -10,7 +10,15 @@ const private_key = process.env["PRIVATE_KEY"]
 
 module.exports = {
   solidity: {
-    version: "0.8.20",
+    compilers: [
+      {
+        version: "0.8.19",
+      },
+      {
+        version: "0.8.20",
+      },
+    ],
+
   },
   defaultNetwork: "linea",
   networks: {
@@ -40,5 +48,5 @@ module.exports = {
     externalArtifacts: ['externalArtifacts/*.json'], // optional array of glob patterns with external artifacts to process (for example external libs from node_modules)
     dontOverrideCompile: false // defaults to false
   },
-  
+
 };

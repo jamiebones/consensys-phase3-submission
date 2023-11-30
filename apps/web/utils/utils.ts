@@ -26,7 +26,10 @@ export const lazyFundNode = async (size: number) => {
 
 export const uploadData = async (dataToUpload: string) => {
 	const irys = getIrysClient();
-	try {
+	try { 
+        const size = Buffer.byteLength(JSON.stringify(dataToUpload))
+        console.log("funding transaction of size => ", size)
+        await lazyFundNode(size);
         const data = Buffer.from(JSON.stringify(dataToUpload));
         const tags = [{name: "Content-Type", value: "text/plain"}];
 		const receipt = await irys.upload(data, { tags });

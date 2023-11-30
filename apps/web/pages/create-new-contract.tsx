@@ -2,14 +2,20 @@ import { ChangeEvent, useState, useEffect } from "react";
 import Button from "../components/Button";
 import Layout from "../components/Layout";
 import { H1 } from "../components/Text";
-import { ethers } from "ethers";
+import { EventLog, ethers } from "ethers";
 import { abi } from "packages/crowd-funding/artifacts/contracts/FundingFactory.sol/FundingFactory.json";
 import { useNetwork } from "../hooks/useNetwork";
 import { useRouter } from "next/router";
-import { CROWDFUNDING_FACTORY_CONTRACT_ADDRESS, FUNDING_FACTORY_CONTRACT_ADDRESS } from "../lib/contract.ts/config";
-import { FundingFactory } from "packages/crowd-funding/typechain";
+import {
+  CROWDFUNDING_FACTORY_CONTRACT_ADDRESS,
+  FUNDING_FACTORY_CONTRACT_ADDRESS,
+  RPC_URL,
+} from "../lib/contract.ts/config";
+import {
+  FundingFactory,
+} from "packages/crowd-funding/typechain";
 import DatePicker from "react-datepicker";
-import { convertToDecimal } from "../utils/utils"
+import { convertToDecimal } from "../utils/utils";
 import "react-datepicker/dist/react-datepicker.css";
 
 const classMap = {
@@ -20,8 +26,17 @@ const classMap = {
   labelClasses: "text-primary-black font-medium text-lg",
 };
 
+const rpcProvider = new ethers.JsonRpcProvider(
+  "https://mainnet.infura.io/v3/YOUR_INFURA_ID"
+);
+
+interface logsEvent {
+  topics: string[];
+  data: string;
+}
+
 export default function CreateNewCrowdFuningContract() {
-  const [amountToRaise, setAmountToRaise] = useState<string>("0");
+  const [amountToRaise, setAmountToRaise] = useState<number>(0);
   const [purpose, setPurpose] = useState<string>("");
   const [remainCharacter, setRemainCharacter] = useState<number>(200);
   const [endDate, setStartDate] = useState(new Date());
@@ -52,7 +67,7 @@ export default function CreateNewCrowdFuningContract() {
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name } = e.target;
     if (name === "amountToRaise" && e.target.value !== null) {
-      setAmountToRaise(e.target.value);
+      setAmountToRaise(+e.target.value);
     } else if (name === "purpose") {
       //get the length of the word
       let wordCount = +e.target.value.length;
@@ -86,12 +101,12 @@ export default function CreateNewCrowdFuningContract() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     if (!description || !amountToRaise || !purpose) return;
     const confirmDetails = confirm(
       `Purpose for raising funds: ${purpose}
       Description: ${description} 
-        Amount Sought: ${(amountToRaise)}
+        Amount Sought: ${amountToRaise.toString()}
         Last Donation Date: ${endDate}
         `
     );
@@ -100,24 +115,27 @@ export default function CreateNewCrowdFuningContract() {
       if (contract && state.isConnected) {
         setLoading(true);
         const transactionId = await handleDescriptionUpload(description);
-        const amount = ethers.parseEther(amountToRaise);
+        const amount = ethers.parseEther(amountToRaise.toString());
         const timestamp = new Date(endDate).getTime();
-        const txn = await contract.createCrowdFundingContract(
+        const tx = await contract.createCrowdFundingContract(
           transactionId,
           purpose,
           amount,
           timestamp,
           { value: ethers.parseEther("0.001") }
         );
-        let receipt = await txn.wait(2);
+        const receipt = await tx.wait(1);
+        console.log("receipt => ", receipt)
         let filter = contract.filters.NewCrowdFundingCreated;
         let events = await contract.queryFilter(filter, receipt?.blockNumber);
-        const contractAddress = events[0].args[2];
-        console.log("transaction logs => ", events[0].args[2]);
-
+        console.log("events => ", events);
+        const event = events[0];
+        const args = event.args;
+        const contractAddress = args.cloneAddress;
+        console.log("Events => ", event);
         setLoading(false);
         setDescription("");
-        setAmountToRaise("0");
+        setAmountToRaise(0);
         router.push(`/contract/${contractAddress}`);
       }
     } catch (error) {

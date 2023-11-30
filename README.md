@@ -20,7 +20,7 @@ This project requires that NodeJS be installed on the machine.
    &nbsp;&nbsp; PRIVATE_KEY ( private key of a wallet used for paying for Arweave upload and Deployment ) <br/>
    &nbsp;&nbsp; INFURA_KEY ( Your Infura private key )
 * Install dependencies by running `npm install` from the root of your project
-* Deploy the application by running `npm run polygon` this will deploy the application to the `Polygon` Mumbai Tesnet.
+* Deploy the application by running `npm run linea` this will deploy the application to the `Linea` Tesnet.
 * Copy the deployed address from the terminal and input it on the file `apps/web/lib/contracts/config.ts`
 * Connect your wallet and interact with the application
 
@@ -32,7 +32,6 @@ Navigate to the root directory and run `npm run test`
 
 ### Challenges
 
-* The project was initially intended to be deployed on Linea, but I noticed that some code that works on Polygon like how to query for events don't work on Linea. 
 * The frontend is manually refreshed to get the updated changes in the blockchain
 * The frontend of the application is not artistically pleasing and more work need to be done in that regards.
 * The dapps is not yet production ready but it offered an opportunity to deep dive into Consensys ecosystem and tools. 
